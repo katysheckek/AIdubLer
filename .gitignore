@@ -1,0 +1,69 @@
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDE (Visual Studio / VS Code / JetBrains)
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Зависимости
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Сборка / бинарники
+bin/
+obj/
+dist/
+build/
+*.exe
+*.dll
+*.pdb
+*.log
+
+### Для API ключей
+# Переменные окружения и секреты
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+# Но оставляем пример
+!.env.example
+
+# Секреты в конфигах
+secrets.json
+credentials.json
+secrets.yaml
+secrets.yml
+config.local.yaml
+
+# Сертификаты и ключи
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+
+# Любые файлы, содержащие эти слова в имени
+*api-key*
+*apikey*
+*secret*
+*credential*
+*token*
+
+# Ключи конкретных сервисов
+openai.key
+OPENAI_API_KEY
+*claude*key*
