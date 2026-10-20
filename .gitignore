@@ -67,3 +67,7 @@ config.local.yaml
 openai.key
 OPENAI_API_KEY
 *claude*key*
+
+# Рабочие данные и кеш тестов
+/data/
+/.pytest_cache/
