@@ -63,6 +63,10 @@ config.local.yaml
 *credential*
 *token*
 
+# Рабочие данные и кеш тестов
+/data/
+/.pytest_cache/
+
 # Ключи конкретных сервисов
 openai.key
 OPENAI_API_KEY
