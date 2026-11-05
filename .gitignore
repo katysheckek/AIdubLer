@@ -59,13 +59,7 @@ config.local.yaml
 # Любые файлы, содержащие эти слова в имени
 *api-key*
 *apikey*
-*secret*
 *credential*
-*token*
-
-# Рабочие данные и кеш тестов
-/data/
-/.pytest_cache/
 
 # Ключи конкретных сервисов
 openai.key

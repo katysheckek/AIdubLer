@@ -1,0 +1,25 @@
+
+# Default: normalize text files to LF
+* text=auto eol=lf
+
+# Explicitly mark common text files
+*.py text
+*.toml text
+*.txt text
+*.md text
+*.yml text
+*.yaml text
+*.json text
+*.ini text
+*.cfg text
+*.editorconfig text
+*.gitattributes text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
