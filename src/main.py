@@ -8,8 +8,10 @@ from fastapi.responses import JSONResponse
 from src.backend.db import init_db
 from src.backend.documents import (
     Document,
+    DocumentChunk,
     UnsupportedFormatError,
     list_documents,
+    list_project_chunks,
     upload_document,
 )
 from src.backend.projects import ProjectNotFoundError, ValidationError
@@ -50,6 +52,10 @@ def create_app(
     @app.get("/projects/{project_id}/documents")
     def documents(project_id: int) -> list[Document]:
         return list_documents(db_path, project_id)
+
+    @app.get("/projects/{project_id}/chunks")
+    def chunks(project_id: int) -> list[DocumentChunk]:
+        return list_project_chunks(db_path, project_id)
 
     return app
 

@@ -6,11 +6,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
+from src.ai.fragmentation.chunking import chunk_documents
+from src.ai.fragmentation.loaders import SUPPORTED_EXTENSIONS, load_document
+
 from .db import connect_db
 from .projects import ValidationError, get_project
-
-
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".pptx"}
 
 
 @dataclass(frozen=True)
@@ -23,8 +23,45 @@ class Document:
     created_at: str
 
 
+@dataclass(frozen=True)
+class DocumentChunk:
+    id: int
+    document_id: int
+    text: str
+    source: str
+    location: str
+    page_number: int | None
+    chunk_index: int
+
+
 class UnsupportedFormatError(ValidationError):
     """Для формата файла нет загрузчика."""
+
+
+class DocumentProcessingError(ValidationError):
+    """Текст не удалось извлечь из документа."""
+
+
+def _process_document(path: Path, original_filename: str) -> list[dict]:
+    try:
+        sections = load_document(path)
+        for section in sections:
+            # Загрузчик видит техническое имя файла, пользователю нужно исходное.
+            section["source"] = original_filename
+        chunks = chunk_documents(sections)
+    except Exception as error:
+        raise DocumentProcessingError(
+            "Не удалось извлечь текст. Файл повреждён, защищён паролем "
+            "или его содержимое не соответствует формату."
+        ) from error
+
+    if not chunks:
+        raise DocumentProcessingError(
+            "В документе нет извлекаемого текста. Загрузите документ с текстом; "
+            "для сканированного PDF требуется OCR."
+        )
+
+    return chunks
 
 
 def upload_document(
@@ -34,7 +71,7 @@ def upload_document(
     filename: str,
     content: BinaryIO,
 ) -> Document:
-    """Сохраняет поток файла и его связь с существующим проектом."""
+    """Принимает файл, извлекает текст и сохраняет документ с фрагментами."""
     get_project(db_path, project_id)
     # Браузер может передать путь Windows; имя не используется как путь хранения.
     original_filename = Path(filename.replace("\\", "/")).name
@@ -63,6 +100,7 @@ def upload_document(
         if size_bytes == 0:
             raise ValidationError("Файл пуст. Загрузите документ с текстом.")
 
+        chunks = _process_document(stored_path, original_filename)
         created_at = datetime.now(UTC).isoformat()
         with closing(connect_db(db_path)) as connection:
             with connection:
@@ -81,6 +119,24 @@ def upload_document(
                 document_id = cursor.lastrowid
                 if document_id is None:
                     raise RuntimeError("Не удалось получить ID документа.")
+                connection.executemany(
+                    """
+                    INSERT INTO document_chunks (
+                        document_id, text, source, location,
+                        page_number, chunk_index
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            document_id, chunk["text"], chunk["source"],
+                            chunk["location"],
+                            int(chunk["location"].split(":")[1])
+                            if extension == ".pdf" else None,
+                            chunk["chunk_index"],
+                        )
+                        for chunk in chunks
+                    ],
+                )
     except Exception:
         if stored_path is not None:
             stored_path.unlink(missing_ok=True)
@@ -105,3 +161,22 @@ def list_documents(db_path: str | Path, project_id: int) -> list[Document]:
             (project_id,),
         ).fetchall()
     return [Document(**dict(row)) for row in rows]
+
+
+def list_project_chunks(
+    db_path: str | Path, project_id: int
+) -> list[DocumentChunk]:
+    """Находит фрагменты проекта через связь с исходными документами."""
+    get_project(db_path, project_id)
+    with closing(connect_db(db_path)) as connection:
+        rows = connection.execute(
+            """
+            SELECT chunks.*
+            FROM document_chunks AS chunks
+            JOIN documents ON documents.id = chunks.document_id
+            WHERE documents.project_id = ?
+            ORDER BY documents.id, chunks.id
+            """,
+            (project_id,),
+        ).fetchall()
+    return [DocumentChunk(**dict(row)) for row in rows]

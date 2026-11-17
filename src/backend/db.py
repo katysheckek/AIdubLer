@@ -49,3 +49,18 @@ def init_db(db_path: str | Path) -> None:
                 ON documents(project_id)
                 """
             )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS document_chunks (
+                    id INTEGER PRIMARY KEY,
+                    document_id INTEGER NOT NULL
+                        REFERENCES documents(id) ON DELETE CASCADE,
+                    text TEXT NOT NULL CHECK (length(trim(text)) > 0),
+                    source TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    page_number INTEGER CHECK (page_number > 0),
+                    chunk_index INTEGER NOT NULL CHECK (chunk_index >= 0),
+                    UNIQUE (document_id, location, chunk_index)
+                )
+                """
+            )

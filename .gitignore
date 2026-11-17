@@ -68,4 +68,5 @@ OPENAI_API_KEY
 
 # Рабочие данные и кеш тестов
 /data/
+/work/
 /.pytest_cache/
