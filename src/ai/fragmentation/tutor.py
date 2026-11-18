@@ -30,8 +30,10 @@ SYSTEM_PROMPT = """
 # Список моделей и бесплатные варианты могут меняться.
 MODELS = [
     "openrouter/free",
-    "google/gemma-4-31b-it:free",
-    "qwen/qwen3.8-27b:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "baidu/ernie-5.5-flash-preview:free",
+    "dots-studio/dots-3-note-preview:free",
+    "cohere/north-mini-code:free"
 ]
 
 
