@@ -15,7 +15,7 @@ def connect_db(db_path: str | Path) -> sqlite3.Connection:
 
 
 def init_db(db_path: str | Path) -> None:
-    """Создаёт начальную таблицу, сохраняя существующие данные."""
+    """Создаёт таблицы, сохраняя существующие данные."""
     with closing(connect_db(db_path)) as connection:
         with connection:
             connection.execute(
@@ -27,6 +27,40 @@ def init_db(db_path: str | Path) -> None:
                     description TEXT NOT NULL DEFAULT '',
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS documents (
+                    id INTEGER PRIMARY KEY,
+                    project_id INTEGER NOT NULL
+                        REFERENCES projects(id) ON DELETE CASCADE,
+                    original_filename TEXT NOT NULL,
+                    storage_path TEXT NOT NULL UNIQUE,
+                    size_bytes INTEGER NOT NULL CHECK (size_bytes > 0),
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS documents_project_id_idx
+                ON documents(project_id)
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS document_chunks (
+                    id INTEGER PRIMARY KEY,
+                    document_id INTEGER NOT NULL
+                        REFERENCES documents(id) ON DELETE CASCADE,
+                    text TEXT NOT NULL CHECK (length(trim(text)) > 0),
+                    source TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    page_number INTEGER CHECK (page_number > 0),
+                    chunk_index INTEGER NOT NULL CHECK (chunk_index >= 0),
+                    UNIQUE (document_id, location, chunk_index)
                 )
                 """
             )
