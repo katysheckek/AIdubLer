@@ -104,6 +104,7 @@ def load_pptx(path: Path) -> list[dict]:
 
     return result
 
+# def load_txt(path: Path) -> list[dict]:
 
 def load_document(path: Path) -> list[dict]:
     extension = path.suffix.lower()
@@ -111,7 +112,9 @@ def load_document(path: Path) -> list[dict]:
     if extension == ".pdf":
         return load_pdf(path)
 
-    if extension == ".docx":
+    if (extension == ".docx"
+            or extension == ".doc"
+            or extension == ".txt"):
         return load_docx(path)
 
     if extension == ".pptx":
