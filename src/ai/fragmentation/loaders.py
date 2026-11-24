@@ -34,6 +34,10 @@ def load_pdf(path: Path) -> list[dict]:
     result = []
 
     with pymupdf.open(path) as pdf:
+        # PyMuPDF может открыть другой формат или молча восстановить битый PDF.
+        if not pdf.is_pdf or pdf.is_repaired or pdf.needs_pass:
+            raise ValueError("PDF is damaged, password-protected or invalid")
+
         for page_number, page in enumerate(pdf, start=1):
             text = page.get_text("text").strip()
 
